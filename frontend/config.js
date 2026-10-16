@@ -4,6 +4,6 @@ window.APP_CONFIG = Object.freeze({
   userPoolId: "ap-south-1_5rUfndDDC",
   userPoolClientId: "50dn3u7drm5hhme25iuia7umqb",
   apiBaseUrl: "https://q395dtp1m7.execute-api.ap-south-1.amazonaws.com/prod",
-  allowedOrigin: "http://localhost:8000",
+  allowedOrigin: "https://main.d7naxs9h32ywt.amplifyapp.com",
   localDemoMode: false
 });
