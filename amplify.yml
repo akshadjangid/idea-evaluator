@@ -1,0 +1,17 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - echo "Static HTML application; no package install required."
+    build:
+      commands:
+        - test -f frontend/index.html
+        - test -f frontend/config.js
+        - test -f frontend/api-client.js
+  artifacts:
+    baseDirectory: frontend
+    files:
+      - '**/*'
+  cache:
+    paths: []

@@ -1,0 +1,232 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AI-Powered Cloud-Based Intelligent Project Idea Evaluation and Recommendation System
+
+Parameters:
+  AllowedOrigin:
+    Type: String
+    Default: http://localhost:8000
+    Description: Exact frontend origin, with no trailing slash. Update after Amplify Hosting is created.
+  SenderEmail:
+    Type: String
+    Default: ''
+    Description: Optional SES-verified sender. Leave empty to disable email notifications.
+  EmailDomain:
+    Type: String
+    Default: ''
+    Description: Optional allowed domain for teammate emails; empty allows any valid email domain.
+  TzOffsetMin:
+    Type: String
+    Default: '330'
+    Description: Minutes offset from UTC for assignment dates (330 = India).
+
+Conditions:
+  HasSender: !Not [!Equals [!Ref SenderEmail, '']]
+
+Resources:
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub '${AWS::StackName}-users'
+      UsernameAttributes: [email]
+      AutoVerifiedAttributes: [email]
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireUppercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          TemporaryPasswordValidityDays: 7
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      EmailConfiguration:
+        EmailSendingAccount: COGNITO_DEFAULT
+      UserPoolTags:
+        Project: IdeaEvaluator
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub '${AWS::StackName}-public-spa'
+      UserPoolId: !Ref UserPool
+      GenerateSecret: false
+      PreventUserExistenceErrors: ENABLED
+      EnableTokenRevocation: true
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      ReadAttributes: [email, email_verified, name, preferred_username]
+      WriteAttributes: [email, name, preferred_username]
+      AccessTokenValidity: 60
+      IdTokenValidity: 60
+      RefreshTokenValidity: 30
+      TokenValidityUnits:
+        AccessToken: minutes
+        IdToken: minutes
+        RefreshToken: days
+
+  FacultyGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: faculty
+      Description: Faculty reviewers and project administrators. Membership must be provisioned by an AWS administrator.
+      UserPoolId: !Ref UserPool
+      Precedence: 10
+
+  IdeasTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub '${AWS::StackName}-records-v2'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: recordType
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: recordType-index
+          KeySchema:
+            - AttributeName: recordType
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Project
+          Value: IdeaEvaluator
+
+  FunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-api'
+      RetentionInDays: 14
+
+  Api:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      EndpointConfiguration: REGIONAL
+      Cors:
+        AllowOrigin: !Sub "'${AllowedOrigin}'"
+        AllowHeaders: "'Content-Type,Authorization'"
+        AllowMethods: "'GET,POST,PUT,PATCH,DELETE,OPTIONS'"
+        MaxAge: 600
+      Auth:
+        DefaultAuthorizer: CognitoAuth
+        AddDefaultAuthorizerToCorsPreflight: false
+        Authorizers:
+          CognitoAuth:
+            UserPoolArn: !GetAtt UserPool.Arn
+            Identity:
+              Header: Authorization
+      GatewayResponses:
+        DEFAULT_4XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: !Sub "'${AllowedOrigin}'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+        DEFAULT_5XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: !Sub "'${AllowedOrigin}'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+      MethodSettings:
+        - ResourcePath: '/*'
+          HttpMethod: '*'
+          ThrottlingBurstLimit: 20
+          ThrottlingRateLimit: 10
+
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-api'
+      CodeUri: backend/
+      Handler: lambda_function.handler
+      Runtime: python3.12
+      Architectures: [arm64]
+      MemorySize: 256
+      Timeout: 29
+      LoggingConfig:
+        LogGroup: !Ref FunctionLogGroup
+      Environment:
+        Variables:
+          TABLE: !Ref IdeasTable
+          MODEL_ID: ''
+          SENDER: !Ref SenderEmail
+          EMAIL_DOMAIN: !Ref EmailDomain
+          TZ_OFFSET_MIN: !Ref TzOffsetMin
+          ALLOWED_ORIGIN: !Ref AllowedOrigin
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Sid: ApplicationRecordsAccess
+              Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:Query]
+              Resource:
+                - !GetAtt IdeasTable.Arn
+                - !Sub '${IdeasTable.Arn}/index/recordType-index'
+        - !If
+          - HasSender
+          - Version: '2012-10-17'
+            Statement:
+              - Sid: SendFromVerifiedSenderOnly
+                Effect: Allow
+                Action: [ses:SendEmail]
+                Resource: '*'
+                Condition:
+                  StringEquals:
+                    ses:FromAddress: !Ref SenderEmail
+          - !Ref AWS::NoValue
+      Events:
+        SyncGet:          { Type: Api, Properties: { RestApiId: !Ref Api, Path: /sync, Method: GET } }
+        SyncPut:          { Type: Api, Properties: { RestApiId: !Ref Api, Path: /sync, Method: PUT } }
+        IdeasList:        { Type: Api, Properties: { RestApiId: !Ref Api, Path: /ideas, Method: GET } }
+        IdeasCreate:      { Type: Api, Properties: { RestApiId: !Ref Api, Path: /ideas, Method: POST } }
+        IdeasUpdate:      { Type: Api, Properties: { RestApiId: !Ref Api, Path: '/ideas/{id}', Method: PATCH } }
+        IdeasDelete:      { Type: Api, Properties: { RestApiId: !Ref Api, Path: '/ideas/{id}', Method: DELETE } }
+        SettingsGet:      { Type: Api, Properties: { RestApiId: !Ref Api, Path: /settings, Method: GET } }
+        SettingsPut:      { Type: Api, Properties: { RestApiId: !Ref Api, Path: /settings, Method: PUT } }
+        AssignmentsList:  { Type: Api, Properties: { RestApiId: !Ref Api, Path: /assignments, Method: GET } }
+        AssignmentsCreate: { Type: Api, Properties: { RestApiId: !Ref Api, Path: /assignments, Method: POST } }
+        AssignmentsToggle: { Type: Api, Properties: { RestApiId: !Ref Api, Path: '/assignments/{id}', Method: PATCH } }
+        NotificationsGet: { Type: Api, Properties: { RestApiId: !Ref Api, Path: /notifications, Method: GET } }
+        NotificationsSeen: { Type: Api, Properties: { RestApiId: !Ref Api, Path: /notifications, Method: PATCH } }
+        LibraryGet:       { Type: Api, Properties: { RestApiId: !Ref Api, Path: /library, Method: GET } }
+        ProjectsList:     { Type: Api, Properties: { RestApiId: !Ref Api, Path: /projects, Method: GET } }
+        ProjectsCreate:   { Type: Api, Properties: { RestApiId: !Ref Api, Path: /projects, Method: POST } }
+        ProjectsAction:   { Type: Api, Properties: { RestApiId: !Ref Api, Path: '/projects/{id}', Method: PATCH } }
+
+Outputs:
+  ApiUrl:
+    Description: Base URL for the frontend API (no trailing slash)
+    Value: !Sub 'https://${Api}.execute-api.${AWS::Region}.amazonaws.com/prod'
+  UserPoolId:
+    Description: New Cognito User Pool ID for frontend/config.js
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Description: Public Cognito App Client ID for frontend/config.js
+    Value: !Ref UserPoolClient
+  FacultyGroupName:
+    Value: !Ref FacultyGroup
+  TableName:
+    Value: !Ref IdeasTable
+  FunctionName:
+    Value: !Ref ApiFunction
+  LogGroupName:
+    Value: !Ref FunctionLogGroup

@@ -1,0 +1,16 @@
+version = 0.1
+
+[default]
+[default.global.parameters]
+region = "ap-south-1"
+
+[default.build.parameters]
+parallel = true
+
+[default.deploy.parameters]
+stack_name = "idea-evaluator"
+resolve_s3 = true
+s3_prefix = "idea-evaluator"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "AllowedOrigin=http://localhost:8000 SenderEmail=jangid.jayprakash@mitwpu.edu.in EmailDomain= TzOffsetMin=330"

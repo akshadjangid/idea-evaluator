@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Idea Evaluator</title>
+<script src="./config.js"></script><script src="./api-client.js"></script>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f5fb;--card:#fff;--soft:#f3f1fb;--ink:#17151f;--mute:#706c80;--line:#e8e5f3;--acc:#6d3df0;--accsoft:#efe9fe;--onacc:#fff;--btn:#111;--onbtn:#fff;--ok:#1a7f4b;--warn:#a86a00;--bad:#b83227}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#13111b;--card:#1d1a29;--soft:#262235;--ink:#f2f0fa;--mute:#a29db5;--line:#352f49;--acc:#9b7bff;--accsoft:#2c2547;--onacc:#140a30;--btn:#f2f0fa;--onbtn:#13111b;--ok:#4cc38a;--warn:#e8b04a;--bad:#ef7b70}}
+:root[data-theme="dark"]{--bg:#13111b;--card:#1d1a29;--soft:#262235;--ink:#f2f0fa;--mute:#a29db5;--line:#352f49;--acc:#9b7bff;--accsoft:#2c2547;--onacc:#140a30;--btn:#f2f0fa;--onbtn:#13111b;--ok:#4cc38a;--warn:#e8b04a;--bad:#ef7b70}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+h2,h3,h4{margin:0 0 10px;font-weight:600}h2{font-size:20px}h3{font-size:15px;margin-top:14px}small{color:var(--mute)}
+.shell{padding:14px}.body{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
+.top,.panel,.box{background:var(--card);border-radius:18px;padding:18px;margin-bottom:16px}.top{display:flex;flex-wrap:wrap;align-items:center;gap:16px;padding:12px 18px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--acc);font-size:16px;white-space:nowrap}
+.logo{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--acc);color:var(--onacc);font-style:normal;font-size:14px}
+.nav{display:flex;gap:6px;flex-wrap:wrap}.nav button{border:0;background:none;color:var(--ink);padding:8px 11px;border-radius:10px;font:inherit;cursor:pointer}
+.nav button.on{background:var(--accsoft);color:var(--acc);font-weight:600}
+.bellbtn{margin-left:auto;padding:7px 12px;display:inline-flex;align-items:center;gap:4px}.themebtn{padding:7px 14px}.badge{background:var(--acc);color:var(--onacc);border-radius:99px;padding:0 7px;font-size:12px}
+.seg{display:flex;flex-wrap:wrap;gap:8px}.seg button{border:1px solid var(--line);background:none;color:var(--ink);border-radius:99px;padding:8px 16px;font:inherit;cursor:pointer}.seg button.on{background:var(--acc);color:var(--onacc);border-color:var(--acc)}.who{display:flex;align-items:center;gap:10px}.who .av{width:34px;height:34px;font-size:14px}.who .alt{padding:7px 14px}
+.search{margin-bottom:14px}.search input{border-radius:14px;padding:12px 14px;background:var(--card)}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.stat{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:16px;padding:14px}
+.stat[data-f]{cursor:pointer;border:1px solid transparent}.stat[data-f]:hover,.stat[data-f]:focus-visible{border-color:var(--acc)}.stat i{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--accsoft);color:var(--acc);font-style:normal}.stat small{display:block}.stat b{font-size:20px}
+.sec{display:flex;justify-content:space-between;align-items:center;margin:18px 0 8px}.sec h3,.h{margin:0}
+a{color:var(--acc)}.lnk{border:0;background:none;color:var(--acc);cursor:pointer;font:inherit}
+.cardrow{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.icard{background:var(--card);border-radius:16px;padding:12px;cursor:pointer;border:1px solid transparent}.icard:hover{border-color:var(--acc)}
+.thumb{background:var(--accsoft);border-radius:12px;padding:16px;margin-bottom:10px;text-align:center}.thumb b{display:block;font-size:34px}.thumb small{color:inherit}
+.icard h4{margin:8px 0;font-size:14px}
+.chip{font-size:11px;padding:2px 10px;border-radius:99px;background:var(--accsoft);color:var(--acc)}
+.by{display:flex;align-items:center;gap:8px;margin-top:10px}
+.av{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--acc);color:var(--onacc);font-size:12px;font-weight:700}
+.soft{border:0;border-radius:99px;padding:6px 14px;background:var(--accsoft);color:var(--acc);cursor:pointer;font:inherit;font-size:12px}.wide{width:100%;margin-top:10px;padding:9px}
+.mrow{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;padding:8px 0}
+.wrap{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);white-space:nowrap}th{font-size:11px;color:var(--mute)}
+summary{cursor:pointer;color:var(--acc)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+label{display:block;font-size:13px;color:var(--mute)}
+input,select,textarea{width:100%;margin-top:4px;padding:9px;border:1px solid var(--line);border-radius:10px;background:var(--soft);color:var(--ink);font:inherit}
+button.go{background:var(--btn);color:var(--onbtn);border:0;border-radius:99px;padding:10px 20px;font:inherit;font-weight:600;cursor:pointer}
+button.alt{background:none;border:1px solid var(--line);color:var(--ink);border-radius:99px;padding:10px 20px;font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.icard:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--acc)}
+.row{display:grid;grid-template-columns:110px 1fr 40px;gap:10px;align-items:center;margin:8px 0}
+.big{font:700 40px system-ui,sans-serif}.tag{display:inline-block;margin:2px 0;font-size:12px;padding:2px 10px;border-radius:99px;border:1px solid currentColor}
+#ls,#fc{margin-top:0;padding:12px 14px;border-radius:14px}.libg{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin:6px 0}.libg .icard{cursor:default}.libg .icard:hover{border-color:transparent}
+.rq{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.agrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}.agrid .panel{margin:0}
+.arow{display:grid;grid-template-columns:minmax(110px,170px) 1fr 34px;gap:10px;align-items:center;margin:10px 0}.arow span{font-size:13px}.arow b{text-align:right}
+.bar i.ok{background:var(--ok)}.bar i.warn{background:var(--warn)}.bar i.bad{background:var(--bad)}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+.authwrap{max-width:420px;margin:8vh auto;padding:14px}.authwrap label{margin-top:10px}
+.tabs{display:flex;gap:8px;margin-bottom:6px}.tabs .alt{padding:7px 14px}.tabs .cur{background:var(--acc);color:var(--onacc);border-color:var(--acc)}
+@media(max-width:900px){.body{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:700px){.stats{grid-template-columns:1fr}.top{gap:8px;padding:12px 14px}.top .brand{font-size:15px}.who{gap:8px}.who .alt{padding:7px 12px}
+.top .brand{order:1}.bellbtn{order:2;padding:7px 10px}.themebtn{order:2;margin-left:0;padding:7px 10px}.who{order:3}.top .nav{order:4;width:100%}.top .tl{display:none}
+.top .nav{flex-wrap:nowrap;overflow-x:auto}.nav button{flex:0 0 auto;white-space:nowrap;padding:10px 12px}.panel,.box{padding:14px}
+thead{display:none}
+tbody tr{display:grid;grid-template-columns:1fr auto;gap:6px 10px;padding:12px 0;border-bottom:1px solid var(--line)}
+td{border:0;padding:0;white-space:normal}
+td:nth-child(1){grid-column:1;grid-row:1}td:nth-child(4){grid-column:2;grid-row:1;font-size:20px;text-align:right}
+td:nth-child(2){grid-column:1;grid-row:2}td:nth-child(3){display:none}td:nth-child(5){grid-column:2;grid-row:2}
+.soft{padding:9px 14px}.row{grid-template-columns:90px 1fr 36px}}
+@media(max-width:1500px){.top .tl{display:none}}
+@media(max-width:420px){.top .bn{display:none}}
+@media(max-width:520px){.who b,.who .av{display:none}}
+@media(max-width:400px){.top{gap:6px;padding:12px}.top .brand{font-size:14px;gap:6px}.themebtn{padding:6px 8px}.who .alt{padding:6px 10px;font-size:13px}}
+
+/* Compact, Instagram-inspired custom authentication screen */
+.authwrap{max-width:390px;margin:7vh auto;padding:12px}
+.auth-brand{justify-content:center;margin:0 auto 26px;font-size:22px;letter-spacing:-.4px}
+.auth-card{border:1px solid var(--line);border-radius:12px;padding:28px 26px 22px;background:var(--card)}
+.auth-card h2{font-size:19px;text-align:center;margin:0 0 22px}
+.auth-form input{height:48px;border-radius:5px;padding:12px 13px;margin:0 0 9px;background:var(--soft)}
+.auth-primary{width:100%;height:42px;border:0;border-radius:7px;background:#3867d6;color:white;font:600 14px system-ui;cursor:pointer;margin-top:5px}
+.auth-primary:disabled{opacity:.65;cursor:wait}
+.auth-link{display:block;text-align:center;border:0;background:none;color:var(--acc);cursor:pointer;font:inherit;padding:0}
+.auth-forgot{font-size:12px;margin:14px auto 0}
+.auth-divider{height:1px;background:var(--line);margin:25px 0 20px}
+.auth-create{width:100%;border:0;background:none;color:var(--ink);font:inherit;cursor:pointer;padding:0}
+.auth-create b{color:var(--acc)}
+.auth-help{font-size:12px;text-align:center;color:var(--mute);margin:18px 0 0}
+.auth-error{font-size:13px;min-height:18px;margin:12px 0 0;color:var(--bad);overflow-wrap:anywhere}
+.auth-back{font-size:13px;margin:16px auto 0}
+.auth-card .auth-note{font-size:12px;color:var(--mute);text-align:center;margin:16px 0 0}
+@media(max-width:480px){.authwrap{margin:4vh auto;padding:10px}.auth-card{padding:24px 20px}}
+</style></head><body>
+<div id="auth" class="authwrap" hidden></div>
+<div class="shell" id="shell" hidden><header class="top"><div class="brand"><i class="logo">&#10022;</i><span class="bn">Idea Evaluator</span></div>
+<div class="nav" id="nav"></div>
+<button class="alt bellbtn" id="bell" data-p="notes" aria-label="Alerts"></button>
+<button class="alt themebtn" data-theme-btn aria-label="Switch between light and dark mode"></button>
+<div class="who" id="who"></div></header>
+<div class="body"><main id="app"></main></div></div>
+
+<script type="module">
+const CFG = window.APP_CONFIG || {};
+const hasCognito = Boolean(CFG.userPoolId && CFG.userPoolClientId);
+let auth = {};
+const authReady = (async () => {
+  if (!hasCognito) return;
+
+  const amplifyModule = await import(
+    "https://esm.sh/aws-amplify@6.22.2"
+  );
+
+  auth = await import(
+    "https://esm.sh/aws-amplify@6.22.2/auth"
+  );
+
+  amplifyModule.Amplify.configure({
+    Auth: {
+      Cognito: {
+        userPoolId: CFG.userPoolId,
+        userPoolClientId: CFG.userPoolClientId,
+        loginWith: { email: true }
+      }
+    }
+  });
+})();
+const tokensToSession = async () => {
+  await authReady;
+  const session = await auth.fetchAuthSession();
+  const id = session.tokens?.idToken?.toString(), access = session.tokens?.accessToken?.toString();
+  if (!id) throw new Error("Cognito did not return an ID token. Please sign in again.");
+  sessionStorage.setItem("cognito_id_token", id);
+  if (access) sessionStorage.setItem("cognito_access_token", access);
+  const claims = JSON.parse(atob(id.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+  return {email:String(claims.email||"").toLowerCase(),name:String(claims.name||claims.preferred_username||claims.email||"Student"),role:(claims["cognito:groups"]||[]).includes("faculty")?"faculty":"student",sub:String(claims.sub||"")};
+};
+const localUsers = () => { try { return JSON.parse(localStorage.getItem("local_demo_users")||"{}"); } catch (_) { return {}; } };
+window.CognitoForm = {
+  signIn: async (email,password) => {
+    if (!hasCognito) {
+      if (!email || !password) throw new Error("Enter your email address and password.");
+      const record=localUsers()[email.toLowerCase()];
+      if (!record) throw new Error("No local demo account exists in this browser. Create an account first.");
+      if (record.confirmed === false) throw new Error("Verify your email first (local demo: use the code 000000).");
+      const u={email:email.toLowerCase(),name:record.name||email.split("@")[0],role:"student",sub:"local:"+email.toLowerCase(),localDemo:true};
+      sessionStorage.setItem("local_demo_user",JSON.stringify(u)); return u;
+    }
+    await authReady; await auth.signIn({username:email,password,options:{authFlowType:"USER_SRP_AUTH"}}); return tokensToSession();
+  },
+  signUp: async (email,password,name) => {
+    if (!hasCognito) {
+      if (!email || !password || password.length<8) throw new Error("Use a valid email and a password with at least 8 characters.");
+      const users=localUsers(), key=email.toLowerCase();
+      if (users[key]) throw new Error("An account with this email already exists in this browser.");
+      users[key]={name:name||key.split("@")[0],confirmed:false}; localStorage.setItem("local_demo_users",JSON.stringify(users));
+      return {nextStep:{signUpStep:"CONFIRM_SIGN_UP"}};
+    }
+    await authReady; return auth.signUp({username:email,password,options:{userAttributes:name?{email,name}:{email}}});
+  },
+  confirmSignUp: async (email,code) => {
+    if (!hasCognito) {
+      if (code !== "000000") throw new Error("For local demo mode, enter 000000 as the verification code.");
+      const users=localUsers(), key=email.toLowerCase(); if(!users[key])throw new Error("No local demo account found.");
+      users[key].confirmed=true; localStorage.setItem("local_demo_users",JSON.stringify(users)); return {};
+    }
+    await authReady; return auth.confirmSignUp({username:email,confirmationCode:code});
+  },
+  resetPassword: async (email) => { if(!hasCognito){const users=localUsers();if(!users[email.toLowerCase()])throw new Error("No local demo account found in this browser.");return {nextStep:{resetPasswordStep:"CONFIRM_RESET_PASSWORD_WITH_CODE"}};} await authReady; return auth.resetPassword({username:email}); },
+  confirmResetPassword: async (email,code,newPassword) => { if(!hasCognito){if(code!=="000000"||newPassword.length<8)throw new Error("Use code 000000 and a password of at least 8 characters in local demo mode.");return {};} await authReady; return auth.confirmResetPassword({username:email,confirmationCode:code,newPassword}); },
+  signOut: async () => { if(hasCognito){await authReady;try{await auth.signOut()}finally{clearCognitoSession();}}else{sessionStorage.removeItem("local_demo_user");} }
+};
+window.cognitoAuthReady = authReady;
+window.refreshCognitoSession = tokensToSession;
+</script>
+<script>
+const hasCognito = Boolean(window.APP_CONFIG && window.APP_CONFIG.userPoolId && window.APP_CONFIG.userPoolClientId);
+function decodeJwtPayload(token) {
+  const part=token.split(".")[1]; if(!part)throw new Error("Invalid token received from Cognito.");
+  const normalized=part.replace(/-/g,"+").replace(/_/g,"/");
+  return JSON.parse(decodeURIComponent(Array.from(atob(normalized.padEnd(Math.ceil(normalized.length/4)*4,"="))).map(c=>"%"+c.charCodeAt(0).toString(16).padStart(2,"0")).join("")));
+}
+const withCls=u=>{if(u){try{u.cls=localStorage.getItem("cls_"+u.email)||""}catch(e){u.cls=""}}return u};
+function restoreCognitoUser() {
+  try { const local=sessionStorage.getItem("local_demo_user"); if(local)return withCls(JSON.parse(local)); } catch (_) {}
+  const token=sessionStorage.getItem("cognito_id_token"); if(!token)return null;
+  try { const claims=decodeJwtPayload(token); if(!claims.exp||claims.exp*1000<=Date.now()){clearCognitoSession();return null;}
+    const groups=Array.isArray(claims["cognito:groups"])?claims["cognito:groups"]:[];
+    return withCls({email:String(claims.email||"").toLowerCase(),name:String(claims.name||claims.preferred_username||claims.email||"Student"),role:groups.includes("faculty")?"faculty":"student",sub:String(claims.sub||"")});
+  } catch(e){clearCognitoSession();return null;}
+}
+function clearCognitoSession(){["cognito_id_token","cognito_access_token","cognito_refresh_token"].forEach(k=>sessionStorage.removeItem(k));}
+async function handleCognitoCallback() { /* Amplify manages the configured Cognito auth flow. */ }
+try{const t=localStorage.getItem("theme1");if(t)document.documentElement.dataset.theme=t}catch(e){}
+const isDark=()=>{const t=document.documentElement.dataset.theme;return t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches};
+function wireTheme(){document.querySelectorAll("[data-theme-btn]").forEach(b=>{
+  b.innerHTML='<span aria-hidden="true">&#9680;</span><span class="tl"> '+(isDark()?"Light mode":"Dark mode")+'</span>';
+  b.onclick=()=>{const t=isDark()?"light":"dark";document.documentElement.dataset.theme=t;try{localStorage.setItem("theme1",t)}catch(e){}wireTheme()};
+})}
+const W={innovation:20,feasibility:20,cost:15,time:15,impact:20,scalability:10};
+const DEF={...W};
+try{const sw=JSON.parse(localStorage.getItem("weights1")||"null");if(sw&&Object.keys(DEF).every(k=>Number.isInteger(sw[k]))&&Object.values(sw).reduce((a,b)=>a+b,0)===100)Object.assign(W,sw)}catch(e){}
+const sumW=()=>Object.values(W).reduce((a,b)=>a+b,0);
+const L={innovation:"Innovation",feasibility:"Feasibility",cost:"Cost",time:"Dev time",impact:"Impact",scalability:"Scalability"};
+const TIPS={innovation:"This overlaps an existing idea. Add a feature or user group nobody has covered.",feasibility:"Reduce technical scope, or pick tools your team already knows.",cost:"Replace paid APIs with free-tier options. Aim for under Rs 2,000.",time:"Cut scope to fit a 14 week term and set a milestone every 2 weeks.",impact:"Name one specific user group, tag the SDG your idea supports, and add a one line reason.",scalability:"Move storage and compute to managed cloud services."};
+const SDG=["No Poverty","Zero Hunger","Good Health and Well-being","Quality Education","Gender Equality","Clean Water and Sanitation","Affordable and Clean Energy","Decent Work and Economic Growth","Industry, Innovation and Infrastructure","Reduced Inequalities","Sustainable Cities and Communities","Responsible Consumption and Production","Climate Action","Life Below Water","Life on Land","Peace, Justice and Strong Institutions","Partnerships for the Goals"];
+const clamp=n=>Math.max(0,Math.min(10,n));
+const words=t=>new Set(t.toLowerCase().match(/[a-z]{4,}/g)||[]);
+function sim(a,b){const x=words(a),y=words(b);if(!x.size||!y.size)return 0;let i=0;x.forEach(w=>y.has(w)&&i++);return i/(x.size+y.size-i)}
+const CLOUD=["aws","amazon","lambda","s3","dynamodb","cognito","amplify","ec2","ecs","eks","cloudfront","api gateway","apigateway","sns","sqs","bedrock","sagemaker","rds","aurora","azure","gcp","google cloud","firebase","firestore","heroku","vercel","netlify","cloudflare","digitalocean","atlas","supabase","serverless","cloud"];
+const LOCAL=["offline","desktop","arduino","raspberry","esp32","sqlite","xampp","local server","local database","localhost","on-premise","on premise"];
+const hits=(t,L)=>L.filter(k=>new RegExp("(^|[^a-z0-9])"+k+"([^a-z0-9]|$)").test(t.toLowerCase()));
+const archOf=t=>{const c=hits(t,CLOUD).length,l=hits(t,LOCAL).length;return c&&l?"hybrid":c?"cloud":"local"};
+function autoInn(d){const m=Math.max(0,...ideas.filter(x=>x.id!==d.id).map(o=>sim(d.title+" "+d.desc,o.title+" "+o.desc)));return clamp(10-m*14)*10}
+function score(d,others){
+  const m=Math.max(0,...others.map(o=>sim(d.title+" "+d.desc,o.title+" "+o.desc)));
+  const s={innovation:d.ovr!=null?clamp(d.ovr/10):clamp(10-m*14),feasibility:clamp(10-(d.complexity-1)*2.5+(d.skill-2)*1.5),
+    cost:d.budget<=500?10:d.budget<=2000?8:d.budget<=5000?6:d.budget<=10000?4:2,
+    time:d.weeks<=10?10:d.weeks<=14?8:d.weeks<=18?5:2,impact:clamp(d.impact*2+(d.sdg&&(d.why||"").trim().length>=20?1.5:0)),scalability:{cloud:10,hybrid:6,local:2}[d.arch]};
+  let t=0;for(const k in W)t+=s[k]*W[k]/10;
+  return{s,total:Math.round(t)};
+}
+const verdict=t=>t>=85?["Highly Suitable","ok"]:t>=70?["Suitable","ok"]:t>=55?["Needs Improvement","warn"]:["Not Recommended","bad"];
+const diff=s=>s.feasibility>=8?"Low":s.feasibility>=5?"Medium":"High";
+const strengths=s=>{const t=Object.keys(W).filter(k=>s[k]>=8).map(k=>`<li>${L[k]}</li>`).join("");return t?`<ul>${t}</ul>`:"<p>No standout strengths yet.</p>"};
+const esc=v=>String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+let sample=null,ideas=[],role="student",sel=null,last=null,user=restoreCognitoUser(),users=[],mode="in",page="dash",q="",flt="",wmsg="",lsdg="",fmsg="",fcls="",delArm="";
+try{ideas=JSON.parse(localStorage.getItem("ideas4")||"[]")}catch(e){}
+ideas=(Array.isArray(ideas)?ideas:[]).filter(d=>d&&typeof d.title==="string"&&d.s&&typeof d.total==="number");
+const save=()=>{try{localStorage.setItem("ideas4",JSON.stringify(ideas))}catch(e){}};
+// Used only as a display label for preloaded demo content, never as a login credential.
+const FAC={email:"faculty-demo@invalid.local",name:"Demo Faculty",role:"faculty"};
+const saveU=()=>{try{localStorage.setItem("cls_"+user.email,user.cls||"")}catch(e){}};
+const view=()=>role==="faculty"?ideas:ideas.filter(d=>d.owner===user.email||(d.team||[]).includes(user.email));
+let fps=[];
+try{fps=JSON.parse(localStorage.getItem("fp1")||"[]")}catch(e){}
+fps=(Array.isArray(fps)?fps:[]).filter(p=>p&&typeof p.title==="string"&&Array.isArray(p.requests)&&Number.isInteger(p.slots));
+if(!fps.length&&!hasCognito)fps=[{id:"p0",title:"Smart attendance system",desc:"Build an attendance system that marks students present with QR codes and stores the records in the cloud. Good for a team that wants practice with serverless APIs.",skills:"Python, AWS Lambda, DynamoDB",slots:2,deadline:"",owner:FAC.email,status:"Open",requests:[],gh:"",demo:"",note:"",pub:true}];
+const saveF=()=>{try{localStorage.setItem("fp1",JSON.stringify(fps))}catch(e){}};
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const REQ_MAX=2;
+const usedReq=()=>Math.max(fps.reduce((n,p)=>n+p.requests.filter(r=>r.student===user.email&&new Date(r.at||Date.now()).getFullYear()===new Date().getFullYear()).length,0),...fps.map(p=>Number(p.requestsUsed||0)),0);
+const acc=p=>p.requests.filter(r=>r.status==="Accepted");
+const left=p=>Number.isFinite(Number(p.left))?Number(p.left):p.slots-acc(p).length;
+const isOpen=p=>p.status==="Open"&&left(p)>0&&(!p.deadline||today()<=p.deadline);
+const pteam=p=>(Array.isArray(p.team)&&p.team.length)?p.team:acc(p).map(r=>r.student);
+const skillChips=t=>(t||"").split(",").map(x=>x.trim()).filter(Boolean).slice(0,6).map(x=>`<span class="chip">${esc(x)}</span>`).join(" ");
+const CLASSES=["ECE A","ECE B","ECEAIML A","ECEAIML B","E&CE A","E&CE B"];
+let asgs=[],notes=[],wlog=[];
+try{asgs=JSON.parse(localStorage.getItem("asg1")||"[]")}catch(e){}
+try{notes=JSON.parse(localStorage.getItem("notes1")||"[]")}catch(e){}
+try{wlog=JSON.parse(localStorage.getItem("wlog1")||"[]")}catch(e){}
+asgs=(Array.isArray(asgs)?asgs:[]).filter(a=>a&&typeof a.title==="string"&&Array.isArray(a.classes)&&typeof a.opens==="string"&&typeof a.closes==="string");
+notes=(Array.isArray(notes)?notes:[]).filter(n=>n&&typeof n.text==="string"&&typeof n.to==="string");
+wlog=(Array.isArray(wlog)?wlog:[]).filter(w=>w&&typeof w.text==="string");
+const addDays=(iso,n)=>{const d=new Date(iso+"T00:00:00");d.setDate(d.getDate()+n);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+if(!asgs.length&&!hasCognito)asgs=[{id:"a0",title:"PBL 1: Cloud project proposal",classes:[...CLASSES],desc:"Propose a cloud computing project that solves a real problem for students or staff on campus. Your idea is scored before you build it.",opens:today(),closes:addDays(today(),30),teamMax:2,timeline:"Week 1: submit your idea\nWeek 2: faculty decision\nWeeks 3 to 10: build the project\nWeek 11: add your demo link",formats:"Demo as a video or a live link. Source code on GitHub. A 2 page summary is shown at the review.",closed:false,owner:FAC.email}];
+const saveA=()=>{try{localStorage.setItem("asg1",JSON.stringify(asgs))}catch(e){}};
+const saveN=()=>{try{localStorage.setItem("notes1",JSON.stringify(notes.slice(-300)))}catch(e){}};
+const saveW=()=>{try{localStorage.setItem("wlog1",JSON.stringify(wlog.slice(-50)))}catch(e){}};
+const note=(to,text)=>{[].concat(to).forEach(e=>{if(e&&e!=="seed")notes.push({id:"n"+Date.now()+Math.random().toString(36).slice(2,6),to:e,text,at:Date.now(),read:false})});saveN()};
+const myNotes=()=>notes.filter(n=>n.to===user.email).sort((a,b)=>b.at-a.at);
+const unread=()=>myNotes().filter(n=>!n.read).length;
+const asgState=a=>a.closed?"Closed":today()<a.opens?"Upcoming":today()>a.closes?"Closed":"Open";
+const asgOpen=(a,c)=>asgState(a)==="Open"&&a.classes.includes(c);
+const logView=d=>(d.log&&d.log.length)?`<div class="panel"><h3 style="margin-top:0">History</h3>${[...d.log].reverse().map(l=>`<p style="margin:4px 0"><small>${esc(new Date(l.at).toLocaleString())}, ${esc(nm(l.by))}</small><br>${esc(l.text)}</p>`).join("")}</div>`:"";
+const delPanel=(d,stu)=>stu&&d.owner===user.email&&d.status!=="Approved"?`<div class="panel"><button class="alt" data-del="${d.id}">${delArm===d.id?"Click again to delete this idea":"Delete this idea"}</button> <small>You can delete an idea until faculty approve it.</small></div>`:"";
+const cfSel=()=>`<select id="fc" aria-label="Filter by class"><option value="">All classes</option>${CLASSES.map(c=>`<option value="${esc(c)}"${fcls===c?" selected":""}>${esc(c)}</option>`).join("")}</select>`;
+const names=d=>[d.owner,...(d.team||[])].map(nm).join(" and ");
+let authMode="login",authPendingEmail="";
+function authView(){
+  const error=new URLSearchParams(location.search).get("auth_error");
+  let title="Log in to Idea Evaluator",fields="",actions="",note="";
+  if(authMode==="login"){
+    fields=`<input id="auth-email" type="email" autocomplete="username" placeholder="Email address" aria-label="Email address" required><input id="auth-password" type="password" autocomplete="current-password" placeholder="Password" aria-label="Password" required>`;
+    actions=`<button class="auth-primary" id="auth-submit">Sign in</button><button type="button" class="auth-link auth-forgot" id="auth-forgot">Forgot password?</button><div class="auth-divider"></div><button type="button" class="auth-create" id="auth-create">Don't have an account? <b>Create account</b></button>${!hasCognito?'<div class="auth-divider"></div><button type="button" class="auth-primary" id="faculty-demo-login">Open faculty demo</button><p class="auth-note">Local preview only — this does not grant faculty access in AWS.</p>':''}`;
+    note=!hasCognito?"Local demo accounts are stored in this browser only.":"Use your verified email account to access the project evaluation workspace.";
+  } else if(authMode==="signup"){
+    title="Create your account";
+    fields=`<input id="auth-name" autocomplete="name" maxlength="60" placeholder="Full name" aria-label="Full name" required><input id="auth-email" type="email" autocomplete="email" placeholder="Email address" aria-label="Email address" required><input id="auth-password" type="password" autocomplete="new-password" placeholder="Password (at least 8 characters)" aria-label="Password" required>`;
+    actions=`<button class="auth-primary" id="auth-submit">Create account</button><button type="button" class="auth-link auth-back" id="auth-back">Back to sign in</button>`;
+    note="We'll email you a verification code to confirm your account.";
+  } else if(authMode==="confirm"){
+    title="Verify your email";
+    fields=`<p class="auth-note">Enter the verification code sent to <b>${esc(authPendingEmail)}</b>.</p><input id="auth-code" inputmode="numeric" autocomplete="one-time-code" placeholder="Email verification code" aria-label="Email verification code" required>`;
+    actions=`<button class="auth-primary" id="auth-submit">Verify email</button><button type="button" class="auth-link auth-back" id="auth-back">Back to sign in</button>`;
+    note="After verification, return to sign in with your email and password.";
+  } else if(authMode==="forgot"){
+    title="Reset your password";
+    fields=`<input id="auth-email" type="email" autocomplete="email" placeholder="Email address" aria-label="Email address" value="${esc(authPendingEmail)}" required>`;
+    actions=`<button class="auth-primary" id="auth-submit">Send reset code</button><button type="button" class="auth-link auth-back" id="auth-back">Back to sign in</button>`;
+    note="We'll send a password-reset code if the account can be recovered.";
+  } else if(authMode==="reset"){
+    title="Choose a new password";
+    fields=`<p class="auth-note">Enter the reset code sent to <b>${esc(authPendingEmail)}</b>.</p><input id="auth-code" inputmode="numeric" autocomplete="one-time-code" placeholder="Password reset code" aria-label="Password reset code" required><input id="auth-password" type="password" autocomplete="new-password" placeholder="New password" aria-label="New password" required>`;
+    actions=`<button class="auth-primary" id="auth-submit">Save new password</button><button type="button" class="auth-link auth-back" id="auth-back">Back to sign in</button>`;
+    note="Choose a password that meets your user pool's password policy.";
+  }
+  return `<p style="text-align:right;margin:0 0 8px"><button class="alt" data-theme-btn aria-label="Switch between light and dark mode"></button></p><div class="brand auth-brand"><i class="logo">&#10022;</i>Idea Evaluator</div><section class="auth-card"><h2>${title}</h2><form id="auth-form" class="auth-form">${fields}${actions}<p id="auth-error" class="auth-error" role="alert">${error?esc(error):""}</p></form><p class="auth-help">${note}</p></section><p class="auth-help">${hasCognito?"Authentication secured by Amazon Cognito.":"Local demo mode — no AWS authentication is being used."}</p>`;
+}
+function authMessage(msg){const el=document.getElementById("auth-error");if(el)el.textContent=msg||"";}
+function wireAuth(){
+  const form=document.getElementById("auth-form"),submit=document.getElementById("auth-submit");
+  if(form)form.addEventListener("submit",async e=>{
+    e.preventDefault(); if(!submit)return; submit.disabled=true; const old=submit.textContent;submit.textContent="Please wait…";authMessage("");
+    try{
+      if(authMode==="login"){
+        const email=document.getElementById("auth-email").value.trim(),password=document.getElementById("auth-password").value;
+        if(!email||!password)throw new Error("Enter your email address and password.");
+        user=withCls(await window.CognitoForm.signIn(email,password));if(window.AppCloud)await window.AppCloud.activate(user);page="dash";history.replaceState({},document.title,location.pathname);render();return;
+      }
+      if(authMode==="signup"){
+        const email=document.getElementById("auth-email").value.trim(),password=document.getElementById("auth-password").value,name=document.getElementById("auth-name").value.trim().slice(0,60);
+        if(!name)throw new Error("Enter your full name.");
+        if(!email||!password)throw new Error("Enter your email address and password.");
+        if(password.length<8)throw new Error("Use a password with at least 8 characters.");
+        const result=await window.CognitoForm.signUp(email,password,name);authPendingEmail=email;
+        authMode=result.nextStep?.signUpStep==="CONFIRM_SIGN_UP"?"confirm":"login";
+        render(); if(authMode==="login")authMessage("Account created. You can now sign in."); return;
+      }
+      if(authMode==="confirm"){
+        const code=document.getElementById("auth-code").value.trim();if(!code)throw new Error("Enter the verification code from your email.");
+        await window.CognitoForm.confirmSignUp(authPendingEmail,code);authMode="login";render();authMessage("Email verified. Sign in to continue.");return;
+      }
+      if(authMode==="forgot"){
+        authPendingEmail=document.getElementById("auth-email").value.trim();if(!authPendingEmail)throw new Error("Enter your email address.");
+        const result=await window.CognitoForm.resetPassword(authPendingEmail);
+        authMode=result.nextStep?.resetPasswordStep==="CONFIRM_RESET_PASSWORD_WITH_CODE"?"reset":"login";render();if(authMode==="reset")authMessage("If the account can be recovered, a reset code has been sent.");return;
+      }
+      if(authMode==="reset"){
+        const code=document.getElementById("auth-code").value.trim(),password=document.getElementById("auth-password").value;
+        if(!code||!password)throw new Error("Enter the reset code and your new password.");
+        await window.CognitoForm.confirmResetPassword(authPendingEmail,code,password);authMode="login";render();authMessage("Password updated. Sign in with your new password.");return;
+      }
+    }catch(err){authMessage(err?.message||"Authentication failed. Please try again.");}
+    finally{if(document.body.contains(submit)){submit.disabled=false;submit.textContent=old;}}
+  });
+  const email=document.getElementById("auth-email");
+  if(authMode==="login"&&email)document.getElementById("auth-forgot").onclick=()=>{authPendingEmail=email.value.trim();authMode="forgot";render()};
+  if(authMode==="login")document.getElementById("auth-create").onclick=()=>{authMode="signup";render()};
+  const facultyDemo=document.getElementById("faculty-demo-login");
+  if(facultyDemo)facultyDemo.onclick=()=>{
+    // This shortcut exists only when Cognito is not configured. It is for local UI preview,
+    // not an authenticated or authorized faculty identity for a deployed environment.
+    user=withCls({email:FAC.email,name:FAC.name,role:"faculty",sub:"local:faculty-demo",localDemo:true});
+    sessionStorage.setItem("local_demo_user",JSON.stringify(user));
+    page="dash";history.replaceState({},document.title,location.pathname);render();
+  };
+  const back=document.getElementById("auth-back");if(back)back.onclick=()=>{authMode="login";render()};
+}
+function seed(){
+  const base=[["Smart campus bus tracker","Live bus location and arrival alerts for students using GPS and a mobile web app",2,2,1500,10,4,"cloud","React, AWS Lambda, DynamoDB"],
+    ["Offline library kiosk","Local kiosk for browsing library books on a single computer with a custom hardware scanner",3,1,14000,20,2,"local","Python, SQLite, local server"]];
+  ideas=base.map((b,i)=>{const d={id:"s"+i,title:b[0],desc:b[1],complexity:b[2],skill:b[3],budget:b[4],weeks:b[5],impact:b[6],arch:b[7],stack:b[8],owner:"seed",sdg:i===0?"11":"",why:i===0?"Cuts waiting time and makes public transport easier for students":"",status:"Pending",feedback:""};return Object.assign(d,score(d,[]))});
+}
+if(!ideas.length&&!hasCognito)seed();
+
+function bars(s){return Object.keys(W).map(k=>`<div class="row"><span>${L[k]}</span><div class="bar"><i style="width:${s[k]*10}%"></i></div><span>${Math.round(s[k]*10)}</span></div>`).join("")}
+function tips(s){const t=Object.keys(W).filter(k=>s[k]<6).map(k=>`<li>${L[k]}: ${TIPS[k]}</li>`).join("");return t?`<ul>${t}</ul>`:"<p>No weak criteria.</p>"}
+function aiBlock(d){
+  const li=x=>(x||[]).map(i=>`<li>${esc(i)}</li>`).join("");
+  if(d.ai){const a=d.ai;
+    return `<h3>AI review</h3><p>${esc(a.summary||"")}</p><p>AI innovation opinion: <b>${esc(a.innovation)}</b> out of 10. This is advisory and does not change the score above.</p>${a.risks&&a.risks.length?`<p><b>Risks</b></p><ul>${li(a.risks)}</ul>`:""}${a.suggestions&&a.suggestions.length?`<p><b>Suggestions</b></p><ul>${li(a.suggestions)}</ul>`:""}${a.tech&&a.tech.length?`<p><b>Suggested technologies:</b> ${a.tech.map(t=>esc(t)).join(", ")}</p>`:""}${a.closest?`<p><b>Closest existing idea:</b> ${esc(a.closest)}. ${esc(a.closestWhy||"")}</p>`:""}`}
+  return sample?`<p><button class="alt" data-ai="${d.id}">Get AI review</button> ${d.aiErr?`<span class="bad">${esc(d.aiErr)}</span>`:""}</p>`:"";
+}
+function card(d){const[v,c]=verdict(d.total);return `<div class="box"><h3>${esc(d.title)}</h3><p><span class="big ${c}">${d.total}</span> out of 100 <span class="tag ${c}">${v}</span> <span class="tag">${esc(d.status)}</span> <span class="tag">Difficulty: ${diff(d.s)}</span> ${d.cls?`<span class="tag">${esc(d.cls)}</span> `:""}${d.ovr!=null?'<span class="tag">Innovation set by faculty</span> ':""}${d.sdg?`<span class="tag">SDG ${esc(d.sdg)}: ${SDG[d.sdg-1]}</span>`:""}</p>${d.users?`<p>For ${esc(d.users)}</p>`:""}${(d.team||[]).length?`<p>Team: ${esc(names(d))}</p>`:""}${d.stack?`<p>Tech stack: ${esc(d.stack)}<br><small>Scalability is read from your stack. Cloud services found: ${esc(hits(d.stack,CLOUD).join(", ")||"none")}.</small></p>`:""}${bars(d.s)}<small>Weights used: ${Object.keys(W).map(k=>L[k]+" "+W[k]+"%").join(", ")}</small><h3>Strengths</h3>${strengths(d.s)}<h3>Concerns</h3>${tips(d.s)}${aiBlock(d)}${d.feedback?`<p><b>Faculty feedback:</b> ${esc(d.feedback)}</p>`:""}</div>`}
+
+const nm=e=>e==="seed"?"Sample idea":((users.find(u=>u.email===e)||{}).name||e);
+const ini=n=>esc((n||"?").trim()[0].toUpperCase());
+const qf=V=>q?V.filter(d=>d.title.toLowerCase().includes(q.toLowerCase())):V;
+const chip=d=>`<span class="chip">${d.sdg?"SDG "+esc(d.sdg):"No SDG"}</span>`;
+function stats(V){
+  const n=V.length,p=V.filter(d=>d.status==="Pending").length;
+  const c=(g,l,v,a)=>`<div class="stat"${a||""}><i>${g}</i><div><small>${l}</small><b>${v}</b></div></div>`;
+  return `<div class="stats">${c("&#9678;","Projects",n)}${c("&#9719;","Pending review",p,' data-f="Pending" tabindex="0" role="button"')}</div>`;
+}
+function cards(V){
+  return `<div class="cardrow">${V.map(d=>{const v=verdict(d.total);return `<div class="icard" data-o="${d.id}" tabindex="0"><div class="thumb ${v[1]}"><b>${d.total}</b><small>${v[0]}</small></div>${chip(d)}<h4>${esc(d.title)}</h4><div class="bar"><i style="width:${d.total}%"></i></div><div class="by"><span class="av">${ini(nm(d.owner))}</span><small>${esc(names(d))}${d.cls?", "+esc(d.cls):""}</small></div></div>`}).join("")||"<small>No ideas yet.</small>"}</div>`;
+}
+function table(V){
+  const rows=V.map(d=>{const v=verdict(d.total);return `<tr><td><span class="av">${ini(nm(d.owner))}</span> ${esc(d.title)}<br><small>${esc(names(d))}${d.cls?", "+esc(d.cls):""}</small></td><td><span class="chip">${esc(d.status)}</span>${d.gh||d.demo?` <span class="chip">Links added</span>`:""}</td><td>${diff(d.s)}</td><td><b class="${v[1]}">${d.total}</b></td><td><button class="soft" data-o="${d.id}">Show details</button></td></tr>`}).join("");
+  return `<div class="wrap"><table><thead><tr><th>IDEA</th><th>STATUS</th><th>DIFFICULTY</th><th>SCORE</th><th></th></tr></thead><tbody>${rows||"<tr><td colspan=5><small>No ideas found.</small></td></tr>"}</tbody></table></div>`;
+}
+const asgCard=a=>`<div class="panel"><h3 style="margin-top:0">${esc(a.title)} <span class="chip">${asgState(a)}</span></h3><small>${esc(a.opens)} to ${esc(a.closes)}. ${a.teamMax===1?"Individual project.":"Teams of up to "+a.teamMax+" students."}</small><p>${esc(a.desc)}</p>${a.timeline?`<p><b>Timeline</b><br>${esc(a.timeline).replace(/\n/g,"<br>")}</p>`:""}${a.formats?`<p><b>Formats and deliverables</b><br>${esc(a.formats).replace(/\n/g,"<br>")}</p>`:""}</div>`;
+function submitView(){
+  const cls=user.cls||"";
+  const tog=`<div class="panel"><h3 style="margin-top:0">Your class</h3><div class="seg">${CLASSES.map(c=>`<button class="${c===cls?"on":""}" data-cls="${esc(c)}">${esc(c)}</button>`).join("")}</div></div>`;
+  if(!cls)return `<h2>Submit an idea</h2>${tog}<div class="panel"><p>Select your class to see your PBL assignment.</p></div>`;
+  const list=asgs.filter(a=>a.classes.includes(cls)),open=list.filter(a=>asgState(a)==="Open");
+  const cards=list.map(asgCard).join("")||`<div class="panel"><p>No PBL assignment has been posted for ${esc(cls)} yet.</p></div>`;
+  return `<h2>Submit an idea</h2>${tog}${cards}${open.length?formView(open):(list.length?`<div class="panel"><p>Idea submission is not open for ${esc(cls)} right now.</p></div>`:"")}<div id="res">${last?card(last):""}</div>`;
+}
+function asgFaculty(){
+  const form=`<div class="panel"><h3 style="margin-top:0">Create a PBL assignment</h3><label>Title<input id="at" maxlength="120"></label>
+  <p style="margin:12px 0 4px"><small>Classes</small></p><div>${CLASSES.map(c=>`<label style="display:inline-flex;gap:6px;align-items:center;margin:0 14px 6px 0;color:var(--ink)"><input type="checkbox" class="acls" value="${esc(c)}" style="width:auto;margin:0">${esc(c)}</label>`).join("")}</div>
+  <label style="margin-top:12px">Description<textarea id="ad" rows="3" maxlength="1000"></textarea></label>
+  <div class="grid" style="margin-top:12px"><label>Idea submission opens<input id="ao" type="date"></label><label>Idea submission closes<input id="ac" type="date"></label><label>Team size<select id="atm">${[1,2,3,4].map(n=>`<option value="${n}"${n===2?" selected":""}>${n===1?"Individual":"Up to "+n+" students"}</option>`).join("")}</select></label></div>
+  <label style="margin-top:12px">Timeline and milestones (one per line)<textarea id="atl" rows="3" maxlength="600"></textarea></label>
+  <label style="margin-top:12px">Formats and deliverables<textarea id="af" rows="3" maxlength="600"></textarea></label>
+  <p><button class="go" id="apost">Create assignment</button> <span id="aserr" class="bad"></span></p></div>`;
+  const list=[...asgs].reverse().map(a=>`<div class="panel"><h3 style="margin-top:0">${esc(a.title)} <span class="chip">${asgState(a)}</span></h3><p>${a.classes.map(c=>`<span class="chip">${esc(c)}</span>`).join(" ")}</p><small>${esc(a.opens)} to ${esc(a.closes)}. ${a.teamMax===1?"Individual project.":"Teams of up to "+a.teamMax+"."} ${ideas.filter(d=>d.asg===a.id).length} ideas submitted.</small><p>${esc(a.desc)}</p>${a.timeline?`<p><b>Timeline</b><br>${esc(a.timeline).replace(/\n/g,"<br>")}</p>`:""}${a.formats?`<p><b>Formats and deliverables</b><br>${esc(a.formats).replace(/\n/g,"<br>")}</p>`:""}<p><button class="alt" data-ac="${a.id}">${a.closed?"Reopen":"Close now"}</button></p></div>`).join("");
+  return `<h2>PBL assignments</h2>${form}<h3>Your assignments</h3>${list}`;
+}
+function notesView(){
+  const list=myNotes();
+  return `<h2>Alerts</h2>${list.length?`<div class="panel">${list.map(n=>`<div class="rq" style="grid-template-columns:1fr auto"><div>${n.read?"":'<span class="chip">New</span> '}${esc(n.text)}</div><small>${esc(new Date(n.at).toLocaleString())}</small></div>`).join("")}</div>`:`<div class="panel"><p>No alerts yet.</p></div>`}`;
+}
+function formView(open){
+  const sel2=(id,o,dv)=>`<select id="${id}">${o.map(x=>`<option value="${x[0]}"${String(x[0])===String(dv)?" selected":""}>${x[1]}</option>`).join("")}</select>`;
+  const tmax=Math.max(...open.map(a=>a.teamMax)),asel=open.length>1?`<label>Assignment<select id="as">${open.map(a=>`<option value="${a.id}">${esc(a.title)}</option>`).join("")}</select></label>`:`<input type="hidden" id="as" value="${open[0].id}">`;
+  return `<div class="panel"><h3 style="margin-top:0">Your idea</h3>${asel}
+  <label>Project title<input id="t" maxlength="120"></label>
+  <label style="margin-top:12px">Describe your idea (2 or 3 sentences)<textarea id="d" rows="3" maxlength="1000"></textarea></label>
+  <p style="margin:6px 0 0"><small id="simw"></small></p>
+  <div class="grid" style="margin-top:12px"><label>Budget in Rs<input id="b" type="number" min="0" value="1000"></label>
+  <label>Weeks needed<input id="w" type="number" min="1" value="12"></label></div>
+  <div class="grid" style="margin-top:12px">
+  <label>How hard is it for your team?${sel2("df",[["1-3","Easy: tools we know"],["2-2","Moderate: some new tools"],["2-1","Hard: mostly new tools"],["3-1","Very hard: advanced and new"]],"2-2")}</label>
+  <label>How much does it help users?${sel2("i",[[1,"Minimal"],[2,"Small"],[3,"Moderate"],[4,"High"],[5,"Very high"]],3)}</label>
+  <label>Technologies you will use<input id="st" maxlength="200" placeholder="e.g. React, AWS Lambda, DynamoDB (include where it runs)"></label></div>
+  <details id="more" style="margin-top:14px"><summary>More options (optional): users, teammate, SDG</summary>
+  <div class="grid" style="margin-top:10px"><label>Target users<input id="u" maxlength="120"></label>
+  <label>${tmax===1?"Individual project, no teammates":"Teammate emails (up to "+(tmax-1)+", separated by commas)"}<input id="tm"></label>
+  <label>Supports which SDG?${sel2("sg",[["","None"],...SDG.map((n,i)=>[i+1,"SDG "+(i+1)+": "+n])])}</label>
+  <label>How does it support that goal? (20+ characters earns an Impact bonus)<input id="sy" maxlength="200"></label></div></details>
+  <p><button class="go" id="sub">Evaluate idea</button> <span id="err" class="bad"></span></p></div>`;
+}
+const href=u=>/^https:\/\//i.test(u)?esc(u):"#";
+function linksView(d,stu){
+  const has=d.gh||d.demo,h3='<h3 style="margin-top:0">';
+  const show=has?`<p>${d.gh?`<a href="${href(d.gh)}" target="_blank" rel="noopener noreferrer">GitHub repository</a>`:""}${d.gh&&d.demo?" &nbsp;|&nbsp; ":""}${d.demo?`<a href="${href(d.demo)}" target="_blank" rel="noopener noreferrer">Demo</a>`:""}</p>${d.note?`<p>${esc(d.note)}</p>`:""}`:"";
+  if(!stu)return has||d.status==="Approved"?`<div class="panel">${h3}Project links</h3>${has?show:"<small>No links added yet.</small>"}</div>`:"";
+  if(d.status!=="Approved")return `<div class="panel">${h3}Project links</h3><small>You can add your GitHub and demo links after faculty approve this idea.</small></div>`;
+  return `<div class="panel">${h3}Submit your project</h3>${show}<div class="grid"><label>GitHub repository link<input id="gh" maxlength="200" value="${esc(d.gh||"")}" placeholder="https://github.com/name/repo"></label><label>Demo link (video or live site)<input id="dm" maxlength="300" value="${esc(d.demo||"")}" placeholder="https://"></label></div><label style="margin-top:12px">Note for faculty (optional)<textarea id="ln" rows="2" maxlength="500">${esc(d.note||"")}</textarea></label><label style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" id="lp" style="width:auto;margin:0"${d.pub===false?"":" checked"}> Show this project in the library (needs a demo link)</label><p><button class="go" id="sv">${has?"Update links":"Submit links"}</button> <span id="lerr" class="bad"></span></p></div>`;
+}
+function fpStudent(){
+  const mineP=fps.filter(p=>p.myRequest==="Accepted"||pteam(p).includes(user.email));
+  const used=usedReq();
+  const my=p=>p.myRequest?{status:p.myRequest}:p.requests.find(r=>r.student===user.email);
+  const shown=fps.filter(p=>!pteam(p).includes(user.email)&&(isOpen(p)||my(p)));
+  const card=p=>{const m=my(p);
+    const act=m?`<span class="chip">${m.status==="Pending"?"Request pending":"Request "+m.status.toLowerCase()}</span>${m.status==="Pending"?` <button class="alt" data-wd="${p.id}">Withdraw request</button>`:""}`:used>=REQ_MAX?`<small>You have used both requests for this year.</small>`:`<div class="grid"><input class="rm" data-id="${p.id}" placeholder="Why do you want to join? (one line)" maxlength="160"><button class="go" data-rq="${p.id}">Request to join</button></div><span class="bad rerr" data-id="${p.id}"></span>`;
+    return `<div class="icard"><h4>${esc(p.title)}</h4><small>By ${esc(nm(p.owner))}</small><p>${esc(p.desc)}</p><p>${skillChips(p.skills)}</p><p><small>${left(p)} of ${p.slots} ${p.slots===1?"slot":"slots"} left${p.deadline?", apply by "+esc(p.deadline):""}</small></p>${act}</div>`};
+  const mine=mineP.map(p=>`<div class="panel"><h3 style="margin-top:0">${esc(p.title)}</h3><small>Faculty: ${esc(nm(p.owner))}. Team: ${esc(pteam(p).map(nm).join(", "))}.</small>
+  <div class="grid" style="margin-top:10px"><label>GitHub repository link<input class="fgh" data-id="${p.id}" maxlength="200" value="${esc(p.gh||"")}" placeholder="https://github.com/name/repo"></label><label>Demo link (video or live site)<input class="fdm" data-id="${p.id}" maxlength="300" value="${esc(p.demo||"")}" placeholder="https://"></label></div>
+  <label style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" class="flp" data-id="${p.id}" style="width:auto;margin:0"${p.pub===false?"":" checked"}> Show this project in the library (needs a demo link)</label>
+  <p><button class="go" data-sl="${p.id}">Save links</button> <span class="bad ferr" data-id="${p.id}"></span></p></div>`).join("");
+  return `<h2>Faculty projects</h2><p><small>Projects posted by faculty. Request to join one and wait for the faculty decision. You have used ${used} of ${REQ_MAX} requests this year.</small></p>${mineP.length?`<h3>Your faculty projects</h3>${mine}`:""}<h3>Open projects</h3>${shown.length?`<div class="libg">${shown.map(card).join("")}</div>`:`<div class="panel"><p>No open faculty projects right now.</p></div>`}`;
+}
+function fpFaculty(){
+  const sel=`<select id="fpn">${[1,2,3,4].map(n=>`<option value="${n}"${n===2?" selected":""}>${n} ${n===1?"student":"students"}</option>`).join("")}</select>`;
+  const form=`<div class="panel"><h3 style="margin-top:0">Post a project</h3><label>Project title<input id="fpt" maxlength="120"></label>
+  <label style="margin-top:12px">Description<textarea id="fpd" rows="3" maxlength="1000"></textarea></label>
+  <div class="grid" style="margin-top:12px"><label>Skills needed (comma separated)<input id="fps" maxlength="200" placeholder="Python, AWS Lambda"></label><label>Open slots${sel}</label><label>Apply by (optional)<input id="fpa" type="date"></label></div>
+  <p><button class="go" id="fppost">Post project</button> <span id="fperr" class="bad"></span></p></div>`;
+  const mine=fps.filter(p=>p.owner===user.email);
+  const list=mine.map(p=>{
+    const st=p.status==="Closed"?"Closed":left(p)<1?"Full":(p.deadline&&today()>p.deadline)?"Deadline passed":"Open";
+    const rq=p.requests.map(r=>`<div class="rq"><span class="av">${ini(nm(r.student))}</span><div><b>${esc(nm(r.student))}</b><br><small>${esc(r.msg)}</small></div>${r.status==="Pending"?`<span><button class="soft" data-dc="1" data-p="${p.id}" data-r="${r.id}" data-d="Accepted"${left(p)<1?" disabled":""}>Accept</button> <button class="soft" data-dc="1" data-p="${p.id}" data-r="${r.id}" data-d="Declined">Decline</button></span>`:`<span><span class="chip">${r.status}</span>${r.status==="Accepted"?` <button class="soft" data-rm="${p.id}|${r.id}">Remove</button>`:""}</span>`}</div>`).join("");
+    const lk=(p.gh||p.demo)?`<p>${p.gh?`<a href="${href(p.gh)}" target="_blank" rel="noopener noreferrer">GitHub repository</a>`:""}${p.gh&&p.demo?" &nbsp;|&nbsp; ":""}${p.demo?`<a href="${href(p.demo)}" target="_blank" rel="noopener noreferrer">Demo</a>`:""}</p>`:"";
+    return `<div class="panel"><h3 style="margin-top:0">${esc(p.title)} <span class="chip">${st}</span></h3><p>${esc(p.desc)}</p><p>${skillChips(p.skills)}</p><p><small>${acc(p).length} of ${p.slots} slots filled${p.deadline?", apply by "+esc(p.deadline):""}</small></p>${lk}${rq||"<small>No requests yet.</small>"}<p style="margin-top:10px"><button class="alt" data-pc="${p.id}">${p.status==="Open"?"Close project":"Reopen project"}</button></p></div>`}).join("");
+  return `<h2>Projects</h2>${fmsg?`<p><small>${esc(fmsg)}</small></p>`:""}${form}<h3>Your projects</h3>${list||`<div class="panel"><p>You have not posted a project yet.</p></div>`}`;
+}
+function libView(){
+  const localItems=[...ideas.filter(d=>d.status==="Approved"&&d.demo&&d.pub!==false).map(d=>({...d,by:names(d)})),...fps.filter(f=>f.demo&&f.pub!==false).map(f=>({title:f.title,desc:f.desc,stack:f.skills,demo:f.demo,total:null,sdg:"",fac:true,by:[f.owner,...pteam(f)].map(nm).join(", ")}))];
+  const remoteItems=window.AppCloud?.publicLibrary||[];
+  const all=[...remoteItems.map(d=>({...d,fac:Boolean(d.faculty),by:d.by||"Student"})),...localItems.filter(d=>!remoteItems.some(r=>r.id&&r.id===d.id))];
+  const sd=[...new Set(all.map(d=>d.sdg).filter(Boolean))].sort((a,b)=>a-b),t=q.toLowerCase();
+  const F=all.filter(d=>(!lsdg||d.sdg===lsdg)&&(!t||(d.title+" "+(d.stack||"")+" "+d.desc).toLowerCase().includes(t))).sort((a,b)=>(b.total||0)-(a.total||0));
+  const lc=d=>`<div class="icard"><h4>${esc(d.title)}</h4><small>${esc(d.by)}</small><p class="clamp">${esc(d.desc)}</p>${d.stack?`<p>${d.stack.split(",").map(x=>x.trim()).filter(Boolean).slice(0,6).map(x=>`<span class="chip">${esc(x)}</span>`).join(" ")}</p>`:""}<p>${d.fac?`<span class="chip">Faculty project</span> `:""}${d.sdg?`<span class="chip">SDG ${esc(d.sdg)}</span> `:""}${d.total!=null?`<span class="chip">Score ${d.total}</span>`:""}</p><p><a href="${href(d.demo)}" target="_blank" rel="noopener noreferrer">View demo</a></p></div>`;
+  const filt=`<div class="grid" style="margin-bottom:14px"><div class="search"><input id="q" placeholder="Search by title, technology, or keyword" aria-label="Search the library"></div><select id="ls" aria-label="Filter by SDG"><option value="">All SDGs</option>${sd.map(n=>`<option value="${n}"${lsdg===n?" selected":""}>SDG ${n}: ${SDG[n-1]}</option>`).join("")}</select></div>`;
+  return `<h2>Project library</h2><p><small>Approved projects and faculty projects with a live demo. Browse past work before you submit a new idea.</small></p>${filt}`+(F.length?`<div class="libg">${F.map(lc).join("")}</div>`:`<div class="panel"><p>${all.length?"No projects match your search.":"No projects yet. A project appears here after faculty approve it and the team adds a demo link."}</p></div>`);
+}
+function analyticsView(){
+  const A=ideas,n=A.length;
+  if(!n)return `<h2>Analytics</h2><div class="panel"><p>No ideas yet. The charts appear after the first submission.</p></div>`;
+  const tiers=[["Highly Suitable",85,101,"ok"],["Suitable",70,85,"ok"],["Needs Improvement",55,70,"warn"],["Not Recommended",0,55,"bad"]];
+  const tc=tiers.map(t=>[t[0],A.filter(d=>d.total>=t[1]&&d.total<t[2]).length,t[3]]);
+  const avg=Object.keys(W).map(k=>[L[k],Math.round(A.reduce((a,d)=>a+d.s[k],0)/n*10)]);
+  const lo=[...avg].sort((a,b)=>a[1]-b[1])[0],hi=[...avg].sort((a,b)=>b[1]-a[1])[0];
+  const all=Math.round(A.reduce((a,d)=>a+d.total,0)/n);
+  const sd={};A.forEach(d=>{const k=d.sdg?"SDG "+d.sdg+": "+SDG[d.sdg-1]:"No SDG";sd[k]=(sd[k]||0)+1});
+  const sl=Object.entries(sd).sort((a,b)=>b[1]-a[1]);
+  const cs={};A.forEach(d=>{const k=d.cls||"No class";cs[k]=(cs[k]||0)+1});const cl=Object.entries(cs).sort((a,b)=>b[1]-a[1]),mc=Math.max(...cl.map(x=>x[1]));
+  const row=(l,v,m,t,c)=>`<div class="arow"><span>${esc(l)}</span><div class="bar"><i class="${c||""}" style="width:${m?v/m*100:0}%"></i></div><b>${t}</b></div>`;
+  const mt=Math.max(...tc.map(t=>t[1])),ms=Math.max(...sl.map(x=>x[1]));
+  return `<h2>Analytics</h2><div class="panel"><p style="margin:0"><b>${n} ${n===1?"idea":"ideas"}, average score ${all} out of 100.</b> Lowest criterion: ${lo[0]} (average ${lo[1]}). Highest: ${hi[0]} (average ${hi[1]}).</p></div>
+  <div class="agrid"><div class="panel"><h3 style="margin-top:0">Ideas by rating</h3>${tc.map(t=>row(t[0],t[1],mt,t[1],t[2])).join("")}</div>
+  <div class="panel"><h3 style="margin-top:0">Average score by criterion</h3>${avg.map(a=>row(a[0],a[1],100,a[1],a[1]===lo[1]?"bad":"")).join("")}</div>
+  <div class="panel"><h3 style="margin-top:0">Ideas by SDG</h3>${sl.map(x=>row(x[0],x[1],ms,x[1])).join("")}</div>
+  <div class="panel"><h3 style="margin-top:0">Ideas by class</h3>${cl.map(x=>row(x[0],x[1],mc,x[1])).join("")}</div></div>`;
+}
+function settingsView(){
+  const rows=Object.keys(W).map(k=>`<label>${L[k]} (%)<input class="wi" data-k="${k}" type="number" min="0" max="100" value="${W[k]}"></label>`).join("");
+  return `<h2>Scoring weights</h2><div class="panel"><p><small>Set how much each criterion counts. The six weights must add up to 100. Saving re-scores every idea.</small></p><div class="grid">${rows}</div><p>Total: <b id="wt">${sumW()}</b></p><p><button class="go" id="wsave">Save weights</button> <button class="alt" id="wreset">Reset to defaults</button> <span id="wmsg" class="${wmsg?"ok":"bad"}">${esc(wmsg)}</span></p></div>${wlog.length?`<div class="panel"><h3 style="margin-top:0">Recent changes</h3>${wlog.slice(-5).reverse().map(l=>`<p style="margin:4px 0"><small>${esc(new Date(l.at).toLocaleString())}, ${esc(nm(l.by))}</small><br>${esc(l.text)}</p>`).join("")}</div>`:""}`;
+}
+function pageView(V){
+  const stu=role==="student";
+  const sb=`<div class="search"><input id="q" placeholder="Search ideas by title" aria-label="Search ideas"></div>`;
+  if(page==="submit")return submitView();
+  if(page==="asg")return asgFaculty();
+  if(page==="notes")return notesView();
+  if(page==="fp")return role==="faculty"?fpFaculty():fpStudent();
+  if(page==="lib")return libView();
+  if(page==="analytics")return analyticsView();
+  if(page==="settings")return settingsView();
+  if(page==="detail"){const d=ideas.find(x=>x.id===sel);if(!d)return "";
+    return `<p><button class="soft" data-p="ideas">Back to ideas</button></p>`+card(d)+linksView(d,stu)+delPanel(d,stu)+(stu?"":`<div class="box"><label>Innovation score override, 0 to 100 (leave empty to use the automatic score of ${Math.round(autoInn(d))})<input id="ov" type="number" min="0" max="100" value="${d.ovr!=null?d.ovr:""}"></label><label style="margin-top:12px">Feedback<textarea id="fb" rows="3" maxlength="1000">${esc(d.feedback)}</textarea></label><p><button class="go" data-a="Approved">Approve</button> <button class="alt" data-a="Rejected">Reject</button> <button class="alt" data-a="Pending">Save as pending</button> <button class="alt" data-a="${esc(d.status)}">Save changes</button> <span id="oerr" class="bad"></span></p>${d.mailNote?`<small>${esc(d.mailNote)}</small>`:""}</div>`+logView(d))}
+  const F=qf(V).filter(d=>(!flt||d.status===flt)&&(!fcls||d.cls===fcls));
+  if(page==="ideas")return `<div class="grid" style="margin-bottom:6px">${sb}${stu?"":cfSel()}</div>`+`<h3 class="h" style="margin:14px 0 8px">${flt==="Pending"?"Pending review":stu?"My ideas":"Review queue"}</h3><div class="panel">${table([...F].sort((a,b)=>b.total-a.total))}</div>`;
+  return sb+stats(V)+`<div class="sec"><h3>Recent ideas</h3><button class="lnk" data-p="ideas">See all</button></div>${cards([...F].reverse().slice(0,3))}`;
+}
+function render(){
+  const shell=document.getElementById("shell"),au=document.getElementById("auth");
+  if(!user){shell.hidden=true;au.hidden=false;au.innerHTML=authView();wireAuth();wireTheme();return}
+  shell.hidden=false;au.hidden=true;role=user.role;
+  if(user.localDemo && !document.getElementById("local-demo-banner")){const b=document.createElement("div");b.id="local-demo-banner";b.className="panel";b.style.marginBottom="10px";b.innerHTML="<b>Local demo mode</b> — data stays in this browser; authentication and cloud sync are simulated. Configure frontend/config.js for AWS Cognito and API access before deployment.";shell.prepend(b)}else if(!user.localDemo){document.getElementById("local-demo-banner")?.remove()}
+  if((role==="faculty"&&page==="submit")||(role!=="faculty"&&(page==="settings"||page==="analytics"||page==="asg")))page="dash";
+  const V=view(),act=page==="detail"?"ideas":page;
+  const items=role==="student"?[["dash","Dashboard"],["submit","Submit idea"],["ideas","My ideas"],["fp","Faculty projects"],["lib","Library"]]:[["dash","Dashboard"],["ideas","Review queue"],["asg","Assignments"],["fp","Projects"],["lib","Library"],["analytics","Analytics"],["settings","Settings"]];
+  document.getElementById("nav").innerHTML=items.map(x=>`<button data-p="${x[0]}" class="${x[0]===act?"on":""}">${x[1]}</button>`).join("");
+  document.getElementById("app").innerHTML=pageView(V);
+  if(page==="notes"){myNotes().forEach(n=>n.read=true);saveN();if(!user.localDemo&&window.AppCloud?.enabled())window.AppCloud.markNotificationsSeen().catch(e=>console.warn("Could not mark alerts read:",e.message))}
+  const un=unread();
+  document.getElementById("bell").innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6V11a6 6 0 0 0-4-5.7V4a2 2 0 0 0-4 0v1.3A6 6 0 0 0 6 11v5l-2 2v1h16v-1l-2-2z"/></svg><span class="tl">Alerts</span>'+(un?'<b class="badge">'+un+'</b>':"");
+  document.getElementById("who").innerHTML=`<span class="av">${ini(user.name)}</span><b>${esc(user.name)}</b><button class="alt" id="out">Sign out</button>`;
+  wireTheme();
+  document.getElementById("out").onclick=async()=>{try{if(window.AppCloud)await window.AppCloud.deactivate();await window.CognitoForm.signOut()}catch(e){clearCognitoSession()}user=null;page="dash";render()};
+  const sub=document.getElementById("sub");
+  if(sub)sub.onclick=()=>{
+    const g=id=>document.getElementById(id).value;
+    if(!g("t").trim()||g("d").trim().length<20){document.getElementById("err").textContent="Add a title and a description of at least 20 characters.";return}
+    const stack=g("st").trim().slice(0,200);
+    if(stack.length<3){document.getElementById("err").textContent="Add the technologies you plan to use, for example React, AWS Lambda, DynamoDB.";return}
+    const as=asgs.find(x=>x.id===g("as"));
+    if(!as||!asgOpen(as,user.cls)){document.getElementById("err").textContent="Idea submission is closed for your class.";return}
+    const tms=[...new Set(g("tm").toLowerCase().split(",").map(x=>x.trim()).filter(Boolean))];
+    if(tms.some(x=>!/^\S+@\S+\.\S+$/.test(x)||x===user.email)){document.getElementById("more").open=true;document.getElementById("err").textContent="Enter valid teammate emails, separated by commas, without your own.";return}
+    if(tms.length>as.teamMax-1){document.getElementById("more").open=true;document.getElementById("err").textContent=as.teamMax===1?"This assignment is for individual projects.":"This assignment allows teams of up to "+as.teamMax+" students.";return}
+    const df=g("df").split("-");
+    const d={id:"i"+Date.now(),title:g("t").trim().slice(0,120),users:g("u").trim().slice(0,120),desc:g("d").trim().slice(0,1000),complexity:+df[0],skill:+df[1],budget:Math.min(1e7,Math.max(0,+g("b")||0)),weeks:Math.min(52,Math.max(1,+g("w")||1)),impact:+g("i"),arch:archOf(stack),stack,sdg:g("sg"),why:g("sy").trim().slice(0,200),owner:user.email,team:tms,cls:user.cls,asg:as.id,status:"Pending",feedback:""};
+    Object.assign(d,score(d,ideas));ideas.push(d);last=d;save();render();
+  };
+  document.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{page=b.dataset.p;sel=null;flt="";wmsg="";fmsg="";fcls="";delArm="";render()});
+  document.querySelectorAll("[data-o]").forEach(r=>{const o=()=>{sel=r.dataset.o;page="detail";render()};r.onclick=o;r.onkeydown=e=>{if(e.key==="Enter")o()}});
+  document.querySelectorAll("[data-f]").forEach(b=>{const f=()=>{flt=b.dataset.f;page="ideas";sel=null;render()};b.onclick=f;b.onkeydown=e=>{if(e.key==="Enter")f()}});
+  const upd=()=>{const t=document.getElementById("t"),dd=document.getElementById("d"),o=document.getElementById("simw");if(!t||!dd||!o)return;
+    const txt=(t.value+" "+dd.value).trim();if(txt.length<12){o.textContent="";return}
+    const m=Math.max(0,...ideas.map(x=>sim(txt,x.title+" "+x.desc))),pct=Math.round(m*100),inn=Math.round(clamp(10-m*14)*10);
+    o.className=m>=.5?"bad":m>=.25?"warn":"ok";
+    o.textContent=m>=.5?"Very close to an existing idea ("+pct+"% word overlap). Your Innovation score would be about "+inn+". Try a different angle.":m>=.25?"Some overlap with an existing idea ("+pct+"%). A different angle would raise your Innovation score, now about "+inn+".":"No close match among existing ideas. Innovation estimate: about "+inn+".";
+  };
+  ["t","d"].forEach(id=>{const e=document.getElementById(id);if(e)e.oninput=upd});
+  document.querySelectorAll(".wi").forEach(i=>i.oninput=()=>{document.getElementById("wt").textContent=[...document.querySelectorAll(".wi")].reduce((a,x)=>a+(+x.value||0),0)});
+  const ws=document.getElementById("wsave");
+  if(ws){
+    const apply=nw=>{Object.assign(W,nw);try{localStorage.setItem("weights1",JSON.stringify(W))}catch(e){}ideas.forEach(d=>Object.assign(d,score(d,ideas.filter(x=>x.id!==d.id))));save();wlog.push({at:Date.now(),by:user.email,text:"Weights set: "+Object.keys(W).map(k=>L[k]+" "+W[k]).join(", ")});saveW();wmsg="Saved. "+ideas.length+" ideas re-scored.";render()};
+    ws.onclick=()=>{const nw={};let t=0,bad=false;document.querySelectorAll(".wi").forEach(i=>{const v=+i.value;if(i.value===""||!Number.isInteger(v)||v<0||v>100)bad=true;nw[i.dataset.k]=v;t+=v});
+      const m=document.getElementById("wmsg");m.className="bad";
+      if(bad){m.textContent="Each weight must be a whole number from 0 to 100.";return}
+      if(t!==100){m.textContent="The weights add up to "+t+". They must add up to 100.";return}
+      apply(nw)};
+    document.getElementById("wreset").onclick=()=>apply({...DEF});
+  }
+  const fpost=document.getElementById("fppost");
+  if(fpost)fpost.onclick=()=>{
+    const v=id=>document.getElementById(id).value.trim(),e=document.getElementById("fperr");
+    if(v("fpt").length<3||v("fpd").length<20||v("fps").length<2){e.textContent="Add a title, a description of at least 20 characters, and the skills needed.";return}
+    const dl=v("fpa");if(dl&&dl<today()){e.textContent="The apply-by date must be today or later.";return}
+    fps.push({id:"p"+Date.now(),title:v("fpt").slice(0,120),desc:v("fpd").slice(0,1000),skills:v("fps").slice(0,200),slots:+v("fpn"),deadline:dl,owner:user.email,status:"Open",requests:[],gh:"",demo:"",note:"",pub:true});saveF();render();
+  };
+  document.querySelectorAll("[data-rq]").forEach(b=>b.onclick=()=>{
+    const p=fps.find(x=>x.id===b.dataset.rq),m=document.querySelector('.rm[data-id="'+p.id+'"]').value.trim(),e=document.querySelector('.rerr[data-id="'+p.id+'"]');
+    if(m.length<5){e.textContent="Write a short reason (at least 5 characters).";return}
+    if(!isOpen(p)||p.requests.some(r=>r.student===user.email))return;
+    if(usedReq()>=REQ_MAX){e.textContent="You have used both requests for this year.";return}
+    p.requests.push({id:"r"+Date.now(),student:user.email,msg:m,at:Date.now(),status:"Pending"});note(p.owner,nm(user.email)+' asked to join "'+p.title+'".');saveF();render();
+  });
+  document.querySelectorAll("[data-dc]").forEach(b=>b.onclick=()=>{
+    const p=fps.find(x=>x.id===b.dataset.p),r=p.requests.find(x=>x.id===b.dataset.r),dec=b.dataset.d;
+    if(dec==="Accepted"&&left(p)<1)return;
+    r.status=dec;note(r.student,'Your request to join "'+p.title+'" was '+dec.toLowerCase()+".");fmsg="Demo only: with the AWS backend, an email about this decision goes to "+r.student+" through Amazon SES.";saveF();render();
+  });
+  document.querySelectorAll("[data-pc]").forEach(b=>b.onclick=()=>{const p=fps.find(x=>x.id===b.dataset.pc);p.status=p.status==="Open"?"Closed":"Open";saveF();render()});
+  document.querySelectorAll("[data-sl]").forEach(b=>b.onclick=()=>{
+    const p=fps.find(x=>x.id===b.dataset.sl),f=c=>document.querySelector("."+c+'[data-id="'+p.id+'"]'),g=f("fgh").value.trim(),m=f("fdm").value.trim(),e=f("ferr");
+    if(!g&&!m){e.textContent="Add a GitHub link, a demo link, or both.";return}
+    if(g&&!/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+/i.test(g)){e.textContent="The GitHub link must look like https://github.com/name/repo";return}
+    if(m&&!/^https:\/\/\S+$/i.test(m)){e.textContent="The demo link must start with https://";return}
+    p.gh=g;p.demo=m;p.pub=f("flp").checked;saveF();render();
+  });
+  document.querySelectorAll("[data-cls]").forEach(b=>b.onclick=()=>{user.cls=b.dataset.cls;saveU();render()});
+  const fc=document.getElementById("fc");if(fc)fc.onchange=()=>{fcls=fc.value;render()};
+  const apost=document.getElementById("apost");
+  if(apost)apost.onclick=()=>{
+    const v=id=>document.getElementById(id).value.trim(),e=document.getElementById("aserr"),cl=[...document.querySelectorAll(".acls:checked")].map(x=>x.value);
+    if(v("at").length<3||v("ad").length<20){e.textContent="Add a title and a description of at least 20 characters.";return}
+    if(!cl.length){e.textContent="Choose at least one class.";return}
+    if(!v("ao")||!v("ac")||v("ac")<v("ao")||v("ac")<today()){e.textContent="Set an opening date and a closing date that is not in the past and not before the opening date.";return}
+    asgs.push({id:"a"+Date.now(),title:v("at").slice(0,120),classes:cl,desc:v("ad").slice(0,1000),opens:v("ao"),closes:v("ac"),teamMax:+v("atm"),timeline:v("atl").slice(0,600),formats:v("af").slice(0,600),closed:false,owner:user.email});saveA();render();
+  };
+  document.querySelectorAll("[data-ac]").forEach(b=>b.onclick=()=>{const a=asgs.find(x=>x.id===b.dataset.ac);a.closed=!a.closed;saveA();render()});
+  document.querySelectorAll("[data-wd]").forEach(b=>b.onclick=()=>{const p=fps.find(x=>x.id===b.dataset.wd),r=p.requests.find(x=>x.student===user.email&&x.status==="Pending");if(!r)return;r.status="Withdrawn";note(p.owner,nm(user.email)+' withdrew the request for "'+p.title+'".');saveF();render()});
+  document.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{const [pi,ri]=b.dataset.rm.split("|"),p=fps.find(x=>x.id===pi),r=p&&p.requests.find(x=>x.id===ri);if(!r||r.status!=="Accepted")return;r.status="Removed";note(r.student,'You were removed from "'+p.title+'".');fmsg="Demo only: with the AWS backend, an email about this change goes to "+r.student+" through Amazon SES.";saveF();render()});
+  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{const id=b.dataset.del;if(delArm!==id){delArm=id;render();return}const d=ideas.find(x=>x.id===id);if(!d||d.owner!==user.email||d.status==="Approved")return;ideas=ideas.filter(x=>x.id!==id);save();delArm="";sel=null;if(last&&last.id===id)last=null;page="ideas";render()});
+  const ls=document.getElementById("ls");if(ls)ls.onchange=()=>{lsdg=ls.value;render()};
+  const sv=document.getElementById("sv");
+  if(sv)sv.onclick=()=>{
+    const d=ideas.find(x=>x.id===sel),g=document.getElementById("gh").value.trim(),m=document.getElementById("dm").value.trim(),e=document.getElementById("lerr");
+    if(!g&&!m){e.textContent="Add a GitHub link, a demo link, or both.";return}
+    if(g&&!/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+/i.test(g)){e.textContent="The GitHub link must look like https://github.com/name/repo";return}
+    if(m&&!/^https:\/\/\S+$/i.test(m)){e.textContent="The demo link must start with https://";return}
+    d.gh=g;d.demo=m;d.note=document.getElementById("ln").value.trim().slice(0,500);d.pub=document.getElementById("lp").checked;save();render();
+  };
+  const se=document.getElementById("q");
+  if(se){se.value=q;se.oninput=()=>{q=se.value;const pos=se.selectionStart;render();const n=document.getElementById("q");n.focus();n.setSelectionRange(pos,pos)}}
+  document.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>{
+    const d=ideas.find(x=>x.id===sel),v=document.getElementById("ov").value.trim(),e=document.getElementById("oerr");
+    if(v!==""&&!(+v>=0&&+v<=100)){e.textContent="Enter a number from 0 to 100, or leave it empty.";return}
+    const o0=d.ovr;if(v==="")delete d.ovr;else d.ovr=+v;
+    Object.assign(d,score(d,ideas.filter(x=>x.id!==d.id)));
+    d.feedback=document.getElementById("fb").value.slice(0,1000);
+    const was=d.status;d.status=b.dataset.a;
+    d.log=d.log||[];const lg=t=>d.log.push({at:Date.now(),by:user.email,text:t});
+    if(d.status!==was){lg("Status: "+was+" to "+d.status);if(d.status==="Approved"||d.status==="Rejected")note([d.owner,...(d.team||[])],'Your idea "'+d.title+'" was '+d.status.toLowerCase()+".")}
+    if(o0!==d.ovr)lg(d.ovr==null?"Innovation override removed":"Innovation score set to "+d.ovr+" (automatic score "+Math.round(autoInn(d))+")");
+    if(d.status!==was)d.mailNote=((d.status==="Approved"||d.status==="Rejected")&&d.owner!=="seed")?"Demo only: with the AWS backend, an email about this decision goes to "+[d.owner,...(d.team||[])].join(", ")+" through Amazon SES.":"";
+    save();render();
+  });
+}
+document.addEventListener("click",async e=>{
+  const b=e.target.closest("[data-ai]");if(!b||!sample)return;
+  const d=ideas.find(x=>x.id===b.dataset.ai);b.disabled=true;b.textContent="Reviewing...";
+  const others=ideas.filter(x=>x.id!==d.id).slice(0,10).map(x=>x.title+": "+x.desc).join("\n")||"none";
+  try{
+    d.ai=await sample.json(`You review student cloud computing project ideas. Return only JSON with keys: innovation (number 0 to 10), summary (one sentence), risks (up to 3 short strings), suggestions (up to 3 short strings), tech (up to 4 AWS or web technologies), closest (title of the most similar existing idea, or empty string), closestWhy (one short sentence, or empty string).\nIdea: ${d.title}\nDescription: ${d.desc}\nTarget users: ${d.users||"not given"}\nTechnology complexity 1 to 3: ${d.complexity}. Budget Rs ${d.budget}. Weeks ${d.weeks}. Planned technologies: ${d.stack||"not given"}.\nExisting ideas:\n${others}`);
+    d.aiErr="";save();
+  }catch(err){d.aiErr="AI review unavailable. Try again later."}
+  render();
+});
+window.addEventListener("cloud-state-updated",()=>{
+  try { ideas=JSON.parse(localStorage.getItem("ideas4")||"[]"); asgs=JSON.parse(localStorage.getItem("asg1")||"[]"); fps=JSON.parse(localStorage.getItem("fp1")||"[]"); notes=JSON.parse(localStorage.getItem("notes1")||"[]"); wlog=JSON.parse(localStorage.getItem("wlog1")||"[]"); const nw=JSON.parse(localStorage.getItem("weights1")||"null"); if(nw&&Object.keys(DEF).every(k=>Number.isInteger(nw[k]))&&Object.values(nw).reduce((a,b)=>a+b,0)===100)Object.assign(W,nw); render(); } catch(e){ console.warn("Could not refresh cloud data:",e.message); }
+});
+(async()=>{
+  try { await window.cognitoAuthReady; await handleCognitoCallback(); if(window.AppCloud && window.AppCloud.enabled() && !sessionStorage.getItem("cognito_id_token")){try{await window.refreshCognitoSession()}catch(_){}} user=restoreCognitoUser(); if(user && !user.localDemo && window.AppCloud)await window.AppCloud.activate(user); }
+  catch(e) { user=null; const u=new URL(location.href); u.searchParams.set("auth_error",e.message||"Authentication failed."); history.replaceState({},document.title,u.pathname+u.search); }
+  render();
+  try{window.claude&&window.claude.use("sample").then(x=>{if(x){sample=x;render()}})}catch(e){}
+})();
+</script></body></html>

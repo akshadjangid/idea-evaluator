@@ -1,0 +1,12 @@
+/* Public runtime configuration. Never place secrets in this file.
+ * For AWS deployment, replace these empty values with CloudFormation outputs.
+ * Empty values intentionally enable local demo mode only.
+ */
+window.APP_CONFIG = Object.freeze({
+  region: "ap-south-1",
+  userPoolId: "",
+  userPoolClientId: "",
+  apiBaseUrl: "",
+  allowedOrigin: "http://localhost:8000",
+  localDemoMode: true
+});

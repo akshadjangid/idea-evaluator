@@ -1,0 +1,19 @@
+{
+  "resource": "/ideas",
+  "path": "/ideas",
+  "httpMethod": "POST",
+  "headers": {"Content-Type": "application/json"},
+  "pathParameters": null,
+  "queryStringParameters": null,
+  "body": "{\"title\":\"Campus energy monitor\",\"desc\":\"A web dashboard helps campus staff track building electricity usage and reduce waste.\",\"users\":\"Campus facilities team\",\"complexity\":2,\"skill\":2,\"budget\":1500,\"weeks\":10,\"impact\":4,\"stack\":\"Python, AWS Lambda, DynamoDB\",\"sdg\":\"9\",\"why\":\"Supports resilient infrastructure through energy visibility.\",\"asg\":\"asg:replace-with-real-assignment-id\",\"cls\":\"ECE A\",\"team\":[]}",
+  "requestContext": {
+    "authorizer": {
+      "claims": {
+        "sub": "local-test-user-sub",
+        "email": "student@example.edu",
+        "name": "Local Test Student",
+        "cognito:groups": "[]"
+      }
+    }
+  }
+}
