@@ -13,4 +13,4 @@ resolve_s3 = true
 s3_prefix = "idea-evaluator"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
-parameter_overrides = "AllowedOrigin=http://localhost:8000 SenderEmail=jangid.jayprakash@mitwpu.edu.in EmailDomain= TzOffsetMin=330"
+parameter_overrides = "AllowedOrigin=https://main.d7naxs9h32ywt.amplifyapp.com SenderEmail=jangid.jayprakash@mitwpu.edu.in EmailDomain= TzOffsetMin=330"
